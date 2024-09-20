@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-boot-mongodb-k8s-deployment
+  labels:
+    app: spring-boot-mongodb-k8s
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: spring-boot-mongodb-k8s
+  template:
+    metadata:
+      labels:
+        app: spring-boot-mongodb-k8s
+    spec:
+      containers:
+        - name: spring-boot-mongodb-k8s
+          image: spring-boot-mongodb-k8s:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: USER
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: USER
+            - name: PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mongo-secret
+                  key: PASSWORD
+            - name: SPRING_DATA_MONGODB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: mongo-config
+                  key: SPRING_DATA_MONGODB_URI
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spring-boot-mongodb-k8s-service
+spec:
+  selector:
+    app: spring-boot-mongodb-k8s
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP

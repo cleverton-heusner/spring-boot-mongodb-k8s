@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  customers-db:
+    image: mongodb/mongodb-community-server:7.0.7-ubi8
+    container_name: customers-db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: user
+      MONGO_INITDB_ROOT_PASSWORD: pass
+    networks:
+      - app-network
+
+  spring-boot-mongodb-k8s:
+    image: spring-boot-mongodb-k8s:latest
+    container_name: spring-boot-mongodb-k8s
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      SPRING_DATA_MONGODB_URI: mongodb://user:pass@customers-db:27017/mongo?authSource=admin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - customers-db
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
